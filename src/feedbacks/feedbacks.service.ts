@@ -16,8 +16,16 @@ export class FeedbacksService {
     return this.feedbackModel.create(dto);
   }
 
-  findAll() {
-    return this.feedbackModel.find().exec();
+  findAll(from?: Date, limit?: number): Promise<Feedback[]> {
+    const query = this.feedbackModel
+      .find({ date: { $gte: from } })
+      .sort({ date: 1 });
+
+    if (limit) {
+      query.limit(limit); // Apply limit if provided
+    }
+
+    return query.exec();
   }
 
   findOne(id: string) {
