@@ -2,10 +2,36 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import {
+  BadRequestException,
+  INestApplication,
+  Logger,
+  ValidationPipe,
+} from '@nestjs/common';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+
+const logger = new Logger('Bootstrap');
+
+function setupSwagger(app: INestApplication) {
+  const config = new DocumentBuilder()
+    .setTitle('Feedback API')
+    .setDescription('API for managing client feedback')
+    .setVersion('1.0')
+    .addTag('feedback')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
+}
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['log', 'error', 'warn', 'debug', 'verbose'],
+  });
+
+  app.enableCors();
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -14,7 +40,6 @@ async function bootstrap() {
       transformOptions: {
         enableImplicitConversion: true,
       },
-      // 👇 Important to include this
       exceptionFactory: (errors) => {
         return new BadRequestException(
           errors.map((err) => ({
@@ -25,24 +50,16 @@ async function bootstrap() {
       },
     }),
   );
+  app.useGlobalInterceptors(new LoggingInterceptor());
+  app.useGlobalFilters(new AllExceptionsFilter());
 
-  const config = new DocumentBuilder()
-    .setTitle('Feedback API')
-    .setDescription('API for managing client feedback')
-    .setVersion('1.0')
-    .addTag('feedback')
-    .build();
+  setupSwagger(app);
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
-
-  await app.listen(3000);
+  const PORT = process.env.PORT || 3000;
+  await app.listen(PORT);
+  logger.log(`🚀 Server is running on http://localhost:${PORT}`);
 }
 
-bootstrap()
-  .then(() => {
-    console.log(`Server is running on port ${process.env.PORT || 3000}`);
-  })
-  .catch((error) => {
-    console.error('Error starting the server:', error);
-  });
+bootstrap().catch((error) => {
+  console.error('Error starting the server:', error);
+});
