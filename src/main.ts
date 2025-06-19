@@ -22,7 +22,7 @@ function setupSwagger(app: INestApplication) {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('api/docs', app, document);
 }
 
 async function bootstrap() {
@@ -40,7 +40,6 @@ async function bootstrap() {
       transformOptions: {
         enableImplicitConversion: true,
       },
-      // 👇 Important to include this
       exceptionFactory: (errors) => {
         return new BadRequestException(
           errors.map((err) => ({
