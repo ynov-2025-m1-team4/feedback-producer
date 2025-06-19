@@ -17,6 +17,9 @@ export class FeedbacksService {
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 123e5d4 (feat: since and limit query on get feedbacks)
   findAll(from?: Date, limit?: number): Promise<Feedback[]> {
     const query = this.feedbackModel
       .find({ date: { $gte: from } })
@@ -27,10 +30,13 @@ export class FeedbacksService {
     }
 
     return query.exec();
+<<<<<<< HEAD
 =======
   findAll() {
     return this.feedbackModel.find().exec();
 >>>>>>> 302dbb7 (feat: simple feedback crud implement)
+=======
+>>>>>>> 123e5d4 (feat: since and limit query on get feedbacks)
   }
 
   findOne(id: string) {
